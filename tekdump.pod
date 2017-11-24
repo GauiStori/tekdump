@@ -1,0 +1,208 @@
+
+=head1 NAME
+
+tekdump - handle screendumps from Tektronix 11801A or DSA602 oscilloscope
+
+=head1 SYNOPSIS
+
+B<tekdump> [ B<-b> I<baud> ] [ B<-l> I<device> ] [ B<-BUmvh> ] [B<-t> I<type>] I<prefix>
+
+B<tekdump> [ B<-BUmv> ] B<-f> I<file>
+
+=head1 DESCRIPTION
+
+Tekdump provides a convenient mechanism for capturing screen images
+from Tektronix oscilloscopes, such as the 11801A digital sampling
+oscilloscope or DSA-602 digitizing signal analyzer.  A suitable cable
+is connected from the oscilliscope's EIA-232 port to a serial port on
+a host workstation; tekdump runs on the host and listens for data over
+the serial port.  When the "Hardcopy" button on the front panel of the
+11801A or DSA602 is pressed, it sends a bitmap image of the screen out
+the serial port.  Tekdump writes each screen image to its own file on
+the host.
+
+It takes about 30 seconds for each screen image to transfer over the
+serial port.  The oscilliscopes have buffer memory for several screen
+images, so a hardcopy can be requested several times in succession
+before this transfer rate becomes a serious impediment.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-B>
+
+Expect the screendump data from the scope to be in binary instead of
+what the manual calls "BinHex" format.  This doesn't work yet, but
+might speed up the transfers slightly when I do get to it.
+
+=item B<-U>
+
+Expect the screendump data from the scope to be in uncompressed form.
+The scope's hardcopy data format setting must be adjusted
+correspondingly.  They take a long time to transfer this way.
+
+=item B<-b> I<baud>
+
+Set the serial port to the specified baud rate.  The serial port on
+the scope must be set to the same rate.
+
+=item B<-f> I<file>
+
+Convert raw screen dump data in I<file> to the selected bitmap format.
+This is useful mainly for debugging tekdump itself.  The B<-b>, B<-l>,
+and B<-t> options are disallowed in this mode.
+
+=item B<-h> 
+
+Print "hash marks" (the "#" character) on the screen to indicate
+progress while recieving a screen dump from the scope.
+
+=item B<-l> I<tty>
+
+Listen on the serial port device named I<tty> instead of the default.
+
+=item B<-m>
+
+Convert the screen image from color to monochrome black-on-white form.
+The color pallette used by the scope is such that some menu label text
+invariably comes out unreadable under any simple mapping of the eight
+11801A colors to black and white, so this isn't all that useful.
+
+=item B<-t> I<type>
+
+Write the screen images in files of the specified I<type> instead of
+in the default portable pixmap (ppm) format.  Available types are:
+
+=over 12
+
+=item gif
+
+GIF format files named with a suffix of C<.gif>.
+Use of this type requires that the ppmtogif executable be in your C<$PATH>.
+
+=item tiff
+
+Tagged Image Format files named with a suffix of C<.tiff>.
+Use of this filetype option requires pnmtotiff.
+
+=item gzip
+
+Ppm format files compressed with GNU zip and named with a suffix of
+C<.ppm.gz>.  Use of this type requires that gzip be in your C<$PATH>.
+
+=back
+
+=item B<-v>
+
+Operate in verbose mode.  This can be useful for infering what's wrong
+when things don't work.
+
+=back
+
+=head1 EXAMPLES
+
+For typical screendump-server usage:
+
+	tekdump -h -t gzip data
+
+will listen on the default serial port at the default baud rate for
+information from the scope, and store successive screendumps in files
+named data0.ppm.gz, data1.ppm.gz, and so on.  It will print "hash
+marks" to indicate progress while receiving a screen dump.
+
+=head1 HARDWARE SETUP
+
+=head2 Cables.
+
+The Tektronix oscilliscope's RS232 port is a DCE, so a "straight
+through" RS232 cable is usually required for the connection.  Since
+XON/XOFF flow control is used, only a three-wire connection is
+required for transmit and receive data and ground.  A cable that works
+properly with a modem will probably work for this application.
+
+=head2 Tektronix 11801A and DSA602 setup.
+
+Press the Utility button on the 11801's front panel, and select the
+"Hardcopy Parameters" menu item with the touchscreen.  Set "printer" to 
+"Bitmap dump," direction to "horizontal," screen format to "screen,"
+data format to "BinHex Compacted" and output port to "RS232C."
+
+=for html
+
+The 11801A's Hardcopy Parameters menu is shown in the following image,
+which was captured with tekdump, of course.
+<CENTER><IMG SRC="gifs/tekdump_hc.gif"></CENTER>
+<p>
+
+Select the "GPIB/RS232C" menu item, and make sure that the RS232
+parameters are set as follows.  Baud rate should be 19200, parity is
+none, echo is off, stop bits set to 1, "flagging" is soft, delay is 0,
+"EOL String" is LF/CR, "verbose" is off, and "RS232C Debug" should be
+off.  Don't mess with the GPIB settings.
+
+=for html
+
+<p>
+<CENTER><IMG SRC="gifs/tekdump_232.gif"></CENTER>
+<p>
+
+The setup screens for the DSA602 are almost identical, except that
+there are three pages of utility menu items; after pressing the
+Utility button, touch the "Page to Utility N" item until the RS-232
+and Hardcopy menu items appear.
+
+=head2 Host computer.
+
+Tekdump was developed on a pentium pro PC running Linux kernel 2.0.23.
+It compiles and the B<-f> option works fine under HP-UX 10.20, but has
+never been tested with the scope connected directly to an HP.  It
+should be easily portable to any POSIX compilant version of Unix
+with an ANSI C compiler.
+
+=head1 FILES
+
+B</dev/cua0> - default serial port for communicating with the scope, at
+least under Linux.
+
+=head1 SEE ALSO
+
+ppm(1), pnmtotiff(1), ppmtogif(1), tty(4)
+
+Tektronix 11801A Digital Sampling Oscilliscope User Manual, page 115
+"hardcopy" and page 191, "RS232-C Parameters."
+
+=head1 CAVEATS
+
+There is no convenient way to capture the raw output from the scope in
+a file for later processing with tekdump's B<-f> option.
+
+Errors in serial data have been observed when tekdump's output is
+directed to the local disk on a Dell Optiplex-pro GX running a 2.0.23
+kernel.  These are indicated by occaisional "bad character" and
+"incorrect line length" error messages and by horizontal streaks in
+the output image.  No such problems have been observed when directing
+the output to an NFS-mounted partition.
+
+The oscilloscope puts an informational banner on the screen when
+each screen image has finished tranmission to the host.  The hardcop
+function dumps the exact screen image, so if the hardcopy button is
+pressed again at this time, the next screendump will include this
+"Hardcopy is complete" banner.  To clear the message, press any of the
+front panel buttons, for example "Waveform."
+
+=head1 BUGS
+
+The B<-B> option doesn't work yet.  When implemented, it will require
+the use of hardware flow control, which on the 11801A requires a
+nonstandard cable.
+
+The 11801A's serial port only goes up to 19,200bps.
+
+The 11801A is nice enough to send its idea of the date and time of the
+screendump, but there's really nothing useful that tekdump can do with
+this information.
+
+=head1 AUTHOR
+
+Steve Tell, tell@cs.unc.edu

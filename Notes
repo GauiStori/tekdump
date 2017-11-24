@@ -1,0 +1,29 @@
+
+Notes while writing program to collect screendumps from Tek 11801A
+sampling scope.
+
+Connected RS232 port on scope to port on guilder (pc w/linux)
+set both ends to 19200bps, soft flagging (XON/XOFF)
+
+See also: page 192 of the 11801A user reference manual, Setting
+RS-232C parameters.
+
+Set up 11801A hardcopy modes for Bitmap dump,
+direction=horizontal, screen format = screen, data format as below.
+
+(first few tries used direction=vertical; when this is done the resulting image
+needs to be rotated 90 degrees counterclockwise)
+
+Collected data using simple script
+
+sample.bhex - binhex
+sample.bhexc - binhex compressed
+sample.binc - binary compressed
+
+Using the information on page 121 of the 11801A user reference manual,
+it should be easy to write a program to recode these formats into
+a standard bitmap image format, such as ppm.
+
+Started writing a program called tekdump to convert these data formats
+to PPM.  The manual is unclear on the color mapping of the 3-bit
+pixels contained in the dump, but otherwise it was straightforward.
