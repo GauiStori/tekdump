@@ -9,6 +9,8 @@
 #include <ctype.h>
 #include <strings.h>
 #include <assert.h>
+#include <string.h>
+#include <stdlib.h>
 
 extern int g_verbose;
 extern int h_flag;
@@ -60,6 +62,23 @@ int bw_map[] = {
   1,
   1
 };
+
+int do_row_bin(FILE *infp, FILE *outfp, int ncols, int U_flag, int row);
+int do_row_hex(FILE *infp, FILE *outfp, int ncols, int U_flag, int row);
+
+
+int getNib(int c) {
+	if (c >= '0' && c <= '9') return c - '0';
+	if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+	if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+}
+
+int getHex(char *s)
+{
+	if(!isxdigit(s[0])) return -1;
+	if(!isxdigit(s[1])) return -1;
+	return getNib(s[0]) << 4 | getNib(s[1]);
+}
 
 
 /*
@@ -274,7 +293,7 @@ do_row_hex(FILE *infp, FILE *outfp, int ncols, int U_flag, int row)
 			}
 			i+= 2;
 		}
-	break_row:
+	break_row:;
 	}
 	if(nc != ncols) {
 		if(h_flag)
@@ -290,19 +309,6 @@ do_row_hex(FILE *infp, FILE *outfp, int ncols, int U_flag, int row)
 	fputc('\n', outfp);
 
 	return 0;
-}
-
-int getNib(int c) {
-	if (c >= '0' && c <= '9') return c - '0';
-	if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-	if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-}
-
-int getHex(char *s)
-{
-	if(!isxdigit(s[0])) return -1;
-	if(!isxdigit(s[1])) return -1;
-	return getNib(s[0]) << 4 | getNib(s[1]);
 }
 
 void write_pixel(int p, FILE *outfp)

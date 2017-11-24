@@ -18,6 +18,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 
 /* this should probably go in a config.h file or somthing like that */
 #ifdef hpux
@@ -283,7 +284,7 @@ tty_rtson(int fd)
 }
 
 void
-tty_rtsoff(fd)
+tty_rtsoff(int fd)
 {
 	int rts = TIOCM_RTS;
 	ioctl(fd, TIOCMBIC, &rts);

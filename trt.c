@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <strings.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <unistd.h>
 #include "tty.h"
 
 static char *prog_version = "trt v0.1 23-May-1997";

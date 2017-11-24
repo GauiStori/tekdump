@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <strings.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "tty.h"
 
 static char *prog_version = "tekdump v0.1 23-May-1997";
@@ -26,6 +29,7 @@ extern int get_header(FILE *infp,
 
 int do_server(char *line, int baud, char *prefix, char *fprog, char *suffix,
 	  int B_flag, int U_flag);
+int do_onefile(FILE *infp, FILE *outfp, int B_flag, int U_flag);
 
 void usage()
 {
@@ -184,14 +188,14 @@ do_server(char *line, int baud, char *prefix, char *filter, char *suffix,
 
 	tty_fd = tty_open(line); /* open, print error message if failure */
 	if(tty_fd < 0)
-		return;
+		return -1;
 	if(tty_set(tty_fd, baud, 8, 1, NO_PARITY) < 0)
-		return;
+		return -1;
 
 	fin = fdopen(tty_fd, "r");
 	if(!fin) {
 		fprintf(stderr, "%s: can't fdopen.\n", line);
-		return;
+		return -1;
 	}
 	if(g_verbose)
 		fprintf(stderr, "listening on %s at %d bps\n", line, baud);
